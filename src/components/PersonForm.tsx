@@ -83,11 +83,11 @@ export function PersonForm({ onSave, onCancel, person }: PersonFormProps) {
           </div>
 
           <div className="form-actions">
-            <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={isSubmitting}>
-              Cancel
-            </button>
             <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
               {person ? 'Save' : 'Add Person'}
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={isSubmitting}>
+              Cancel
             </button>
           </div>
         </form>

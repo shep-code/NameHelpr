@@ -37,11 +37,22 @@ function App() {
     }
   };
 
+  // Replace current view and drop the previous history item (e.g. person-detail)
+  // so back-navigation skips over the edit flow entirely.
+  const navigateReplace = (newView: ViewType) => {
+    setViewHistory(prev => prev.slice(0, -1));
+    setView(newView);
+  };
+
   const handleEditSave = async (name: string, context: string, notes?: string, contextTags?: string[]) => {
     if (editingPersonId) {
       await updatePerson(editingPersonId, { name, context, notes, contextTags });
     }
-    navigateBack();
+    navigateReplace({ type: 'context-detail', context });
+  };
+
+  const handleEditCancel = () => {
+    navigateReplace({ type: 'context-detail', context: editingPerson!.context });
   };
 
   // Render based on view type
@@ -100,7 +111,7 @@ function App() {
           <PersonForm
             person={editingPerson}
             onSave={handleEditSave}
-            onCancel={navigateBack}
+            onCancel={handleEditCancel}
           />
         </div>
       );

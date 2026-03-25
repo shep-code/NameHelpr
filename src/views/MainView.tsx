@@ -62,17 +62,17 @@ export function MainView({ onNavigate }: MainViewProps) {
               />
               <button
                 type="submit"
-                className="inline-new-context-confirm"
+                className="btn btn-primary inline-form-btn"
                 disabled={!newCtxName.trim() || newCtxSaving}
               >
-                {newCtxSaving ? '...' : '✓'}
+                {newCtxSaving ? '...' : 'Save'}
               </button>
               <button
                 type="button"
-                className="inline-new-context-cancel"
+                className="btn btn-secondary inline-form-btn"
                 onClick={() => { setShowNewCtx(false); setNewCtxName(''); setNewCtxError(''); }}
               >
-                ✕
+                Cancel
               </button>
               {newCtxError && <p className="inline-new-context-error">{newCtxError}</p>}
             </form>

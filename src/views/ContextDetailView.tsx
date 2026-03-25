@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { usePeopleByContext } from '../hooks/usePeopleByContext';
-import { useContexts } from '../hooks/useContexts';
-import { useSubContexts, useParentContext } from '../hooks/useContextHierarchy';
+import { useSubContexts, useParentContext, useEligibleParents } from '../hooks/useContextHierarchy';
 import { useContextActions, usePersons } from '../db/hooks';
 import { CompactPersonList } from '../components/CompactPersonList';
 import { ContextList } from '../components/ContextList';
@@ -28,12 +27,13 @@ export function ContextDetailView({ context, onBack, onNavigate }: ContextDetail
   const [newPersonName, setNewPersonName] = useState('');
   const [newPersonNotes, setNewPersonNotes] = useState('');
   const [newPersonSaving, setNewPersonSaving] = useState(false);
+  const newPersonNameRef = useRef<HTMLInputElement>(null);
 
   const peopleByContext = usePeopleByContext(currentContext);
-  const allContexts = useContexts();
   const subContexts = useSubContexts(currentContext);
   const parentContext = useParentContext(currentContext);
-  const { renameContext, setParentContext, addContext } = useContextActions();
+  const eligibleParents = useEligibleParents(currentContext);
+  const { renameContext, setParentContext, addContext, deleteContext } = useContextActions();
   const { addPerson } = usePersons();
 
   const handleAddSubContext = async (e: React.FormEvent) => {
@@ -62,19 +62,13 @@ export function ContextDetailView({ context, onBack, onNavigate }: ContextDetail
     setNewPersonSaving(true);
     try {
       await addPerson(trimmed, currentContext, newPersonNotes.trim() || undefined);
-      setShowNewPerson(false);
       setNewPersonName('');
       setNewPersonNotes('');
+      newPersonNameRef.current?.focus();
     } finally {
       setNewPersonSaving(false);
     }
   };
-
-  // Available parents: all contexts except self and own sub-contexts (prevent cycles)
-  const subContextSet = new Set(subContexts ?? []);
-  const availableParents = (allContexts ?? [])
-    .filter(c => c.count === 0 && c.context !== currentContext && !subContextSet.has(c.context))
-    .map(c => c.context);
 
   const startEditing = () => {
     setEditName(currentContext);
@@ -120,6 +114,16 @@ export function ContextDetailView({ context, onBack, onNavigate }: ContextDetail
     </svg>
   );
 
+  const trashIcon = (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+      <path d="M10 11v6"></path>
+      <path d="M14 11v6"></path>
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+    </svg>
+  );
+
   if (!peopleByContext) {
     return (
       <div className="context-detail-view">
@@ -134,6 +138,18 @@ export function ContextDetailView({ context, onBack, onNavigate }: ContextDetail
   }
 
   const { primary, secondary } = peopleByContext;
+
+  const canDelete =
+    primary.length === 0 &&
+    secondary.length === 0 &&
+    (subContexts ?? []).length === 0;
+
+  const handleDelete = async () => {
+    if (window.confirm(`Delete "${currentContext}"?`)) {
+      await deleteContext(currentContext);
+      onNavigate({ type: 'main' });
+    }
+  };
 
   return (
     <div className="context-detail-view">
@@ -166,6 +182,11 @@ export function ContextDetailView({ context, onBack, onNavigate }: ContextDetail
             <button className="pencil-btn" onClick={startEditing} aria-label="Edit group name">
               {pencilIcon}
             </button>
+            {canDelete && (
+              <button className="trash-btn" onClick={handleDelete} aria-label="Delete group">
+                {trashIcon}
+              </button>
+            )}
           </>
         )}
       </header>
@@ -193,7 +214,7 @@ export function ContextDetailView({ context, onBack, onNavigate }: ContextDetail
           <div className="set-parent-row">
             {showParentPicker ? (
               <div className="set-parent-picker">
-                {availableParents.length > 0 ? (
+                {(eligibleParents ?? []).length > 0 ? (
                   <select
                     defaultValue=""
                     className="tag-dropdown"
@@ -205,7 +226,7 @@ export function ContextDetailView({ context, onBack, onNavigate }: ContextDetail
                     }}
                   >
                     <option value="" disabled>Select parent group...</option>
-                    {availableParents.map(c => (
+                    {(eligibleParents ?? []).map(c => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
@@ -234,9 +255,8 @@ export function ContextDetailView({ context, onBack, onNavigate }: ContextDetail
       )}
 
       <main className="detail-content">
-        {primary.length === 0 && secondary.length === 0 ? (
-          (subContexts ?? []).length === 0 && <p className="empty-message">No one in this group</p>
-        ) : (
+        {/* People section — only when people exist */}
+        {(primary.length > 0 || secondary.length > 0) && (
           <>
             {primary.length > 0 && (
               <section className="section-primary">
@@ -260,13 +280,15 @@ export function ContextDetailView({ context, onBack, onNavigate }: ContextDetail
           </>
         )}
 
-        {/* Sub-contexts section */}
-        {(subContexts ?? []).length > 0 && (
+        {/* Sub-group section — visible for any group with no people */}
+        {primary.length === 0 && secondary.length === 0 && (
           <>
-            <ContextList
-              contexts={subContexts!}
-              onContextTap={(ctx) => onNavigate({ type: 'context-detail', context: ctx })}
-            />
+            {(subContexts ?? []).length > 0 && (
+              <ContextList
+                contexts={subContexts!}
+                onContextTap={(ctx) => onNavigate({ type: 'context-detail', context: ctx })}
+              />
+            )}
             <div className="inline-new-context">
               {showNewSubCtx ? (
                 <form onSubmit={handleAddSubContext} className="inline-new-context-form">
@@ -278,11 +300,11 @@ export function ContextDetailView({ context, onBack, onNavigate }: ContextDetail
                     placeholder="Group name..."
                     autoCapitalize="words"
                   />
-                  <button type="submit" className="inline-new-context-confirm" disabled={!newSubCtxName.trim() || newSubCtxSaving}>
-                    {newSubCtxSaving ? '...' : '✓'}
+                  <button type="submit" className="btn btn-primary inline-form-btn" disabled={!newSubCtxName.trim() || newSubCtxSaving}>
+                    {newSubCtxSaving ? '...' : 'Save'}
                   </button>
-                  <button type="button" className="inline-new-context-cancel" onClick={() => { setShowNewSubCtx(false); setNewSubCtxName(''); setNewSubCtxError(''); }}>
-                    ✕
+                  <button type="button" className="btn btn-secondary inline-form-btn" onClick={() => { setShowNewSubCtx(false); setNewSubCtxName(''); setNewSubCtxError(''); }}>
+                    Cancel
                   </button>
                   {newSubCtxError && <p className="inline-new-context-error">{newSubCtxError}</p>}
                 </form>
@@ -295,11 +317,13 @@ export function ContextDetailView({ context, onBack, onNavigate }: ContextDetail
           </>
         )}
 
+        {/* Add-person section — only when no sub-groups exist */}
         {(subContexts ?? []).length === 0 && (
           <div className="inline-new-person">
             {showNewPerson ? (
               <form onSubmit={handleAddPerson} className="inline-new-context-form">
                 <input
+                  ref={newPersonNameRef}
                   autoFocus
                   className="inline-new-context-input"
                   value={newPersonName}
@@ -316,17 +340,17 @@ export function ContextDetailView({ context, onBack, onNavigate }: ContextDetail
                 />
                 <button
                   type="submit"
-                  className="inline-new-context-confirm"
+                  className="btn btn-primary inline-form-btn"
                   disabled={!newPersonName.trim() || newPersonSaving}
                 >
-                  {newPersonSaving ? '...' : '✓'}
+                  {newPersonSaving ? '...' : 'Save'}
                 </button>
                 <button
                   type="button"
-                  className="inline-new-context-cancel"
+                  className="btn btn-secondary inline-form-btn"
                   onClick={() => { setShowNewPerson(false); setNewPersonName(''); setNewPersonNotes(''); }}
                 >
-                  ✕
+                  Done
                 </button>
               </form>
             ) : (

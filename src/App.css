@@ -798,6 +798,23 @@
   color: var(--accent);
 }
 
+.trash-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.trash-btn:active {
+  color: var(--danger, #e53e3e);
+}
+
 .context-edit-inline {
   flex: 1;
   display: flex;
@@ -824,7 +841,8 @@
 }
 
 .context-edit-save,
-.context-edit-cancel {
+.context-edit-cancel,
+.inline-form-btn {
   padding: 0.4rem 0.75rem;
   font-size: 0.875rem;
   min-height: 40px;

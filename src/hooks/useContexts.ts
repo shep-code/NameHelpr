@@ -4,6 +4,7 @@ import { db } from '../db/schema';
 export interface ContextWithCount {
   context: string;
   count: number;
+  primaryCount: number;
   isParent?: boolean;
 }
 
@@ -15,9 +16,11 @@ export function useContexts(): ContextWithCount[] | undefined {
     ]);
 
     const contextCounts: Record<string, number> = {};
+    const primaryCounts: Record<string, number> = {};
 
     // Count from both primary context and secondary contextTags
     people.forEach(person => {
+      primaryCounts[person.context] = (primaryCounts[person.context] || 0) + 1;
       contextCounts[person.context] = (contextCounts[person.context] || 0) + 1;
       if (person.contextTags) {
         person.contextTags.forEach(tag => {
@@ -49,7 +52,7 @@ export function useContexts(): ContextWithCount[] | undefined {
 
     return Object.entries(contextCounts)
       .filter(([name]) => !childContextNames.has(name))
-      .map(([context, count]) => ({ context, count, isParent: parentContextNames.has(context) }))
+      .map(([context, count]) => ({ context, count, primaryCount: primaryCounts[context] ?? 0, isParent: parentContextNames.has(context) }))
       .sort((a, b) => a.context.localeCompare(b.context));
   }, []);
 }
