@@ -64,18 +64,25 @@ export function PersonDetailView({ personId, onBack, onNavigate }: PersonDetailV
         </div>
       </header>
 
-      <main className="person-content">
-        <h1>{person.name}</h1>
+      <button className="back-arrow-btn page-back" onClick={onBack} aria-label="Go back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
 
-        <section className="field">
-          <label>Met at</label>
-          <button
-            className="context-link"
-            onClick={() => onNavigate({ type: 'context-detail', context: person.context })}
-          >
-            {person.context}
-          </button>
-        </section>
+      <main className="person-content">
+        <div className="person-name-row">
+          <h1>{person.name}</h1>
+          <div className="parent-context-indicator person-member-of">
+            <span className="parent-label">Member of:</span>
+            <button
+              className="parent-context-link"
+              onClick={() => onNavigate({ type: 'context-detail', context: person.context })}
+            >
+              {person.context}
+            </button>
+          </div>
+        </div>
 
         {person.contextTags && person.contextTags.length > 0 && (
           <section className="field">

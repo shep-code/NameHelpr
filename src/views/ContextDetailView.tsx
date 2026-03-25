@@ -8,11 +8,12 @@ import { ViewType } from '../types/Navigation';
 
 interface ContextDetailViewProps {
   context: string;
+  fromContext?: string;
   onBack: () => void;
   onNavigate: (view: ViewType) => void;
 }
 
-export function ContextDetailView({ context, onBack, onNavigate }: ContextDetailViewProps) {
+export function ContextDetailView({ context, fromContext, onBack, onNavigate }: ContextDetailViewProps) {
   const [currentContext, setCurrentContext] = useState(context);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
@@ -23,6 +24,7 @@ export function ContextDetailView({ context, onBack, onNavigate }: ContextDetail
   const [newSubCtxName, setNewSubCtxName] = useState('');
   const [newSubCtxError, setNewSubCtxError] = useState('');
   const [newSubCtxSaving, setNewSubCtxSaving] = useState(false);
+  const [sortMode, setSortMode] = useState<'alpha' | 'recent'>('alpha');
   const [showNewPerson, setShowNewPerson] = useState(false);
   const [newPersonName, setNewPersonName] = useState('');
   const [newPersonNotes, setNewPersonNotes] = useState('');
@@ -79,6 +81,7 @@ export function ContextDetailView({ context, onBack, onNavigate }: ContextDetail
   const cancelEditing = () => {
     setIsEditing(false);
     setEditError('');
+    setShowParentPicker(false);
   };
 
   const handleRename = async () => {
@@ -139,6 +142,15 @@ export function ContextDetailView({ context, onBack, onNavigate }: ContextDetail
 
   const { primary, secondary } = peopleByContext;
 
+  const sortPeople = (people: typeof primary) =>
+    sortMode === 'recent'
+      ? [...people].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      : people;
+
+  const sortedPrimary = sortPeople(primary);
+  const sortedSecondary = sortPeople(secondary);
+  const hasPeople = primary.length > 0 || secondary.length > 0;
+
   const canDelete =
     primary.length === 0 &&
     secondary.length === 0 &&
@@ -191,89 +203,115 @@ export function ContextDetailView({ context, onBack, onNavigate }: ContextDetail
         )}
       </header>
 
-      {/* Parent context indicator / set parent */}
-      {parentContext !== undefined && (
-        parentContext ? (
-          <div className="parent-context-indicator">
-            <span className="parent-label">Part of:</span>
-            <button
-              className="parent-context-link"
-              onClick={() => onNavigate({ type: 'context-detail', context: parentContext })}
-            >
-              {parentContext}
-            </button>
-            <button
-              className="remove-parent-btn"
-              onClick={() => setParentContext(currentContext, null)}
-              aria-label="Remove parent"
-            >
-              ×
-            </button>
-          </div>
-        ) : (
-          <div className="set-parent-row">
-            {showParentPicker ? (
-              <div className="set-parent-picker">
-                {(eligibleParents ?? []).length > 0 ? (
-                  <select
-                    defaultValue=""
-                    className="tag-dropdown"
-                    onChange={async (e) => {
-                      if (e.target.value) {
-                        await setParentContext(currentContext, e.target.value);
-                        setShowParentPicker(false);
-                      }
-                    }}
-                  >
-                    <option value="" disabled>Select parent group...</option>
-                    {(eligibleParents ?? []).map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <p className="no-tags-hint">No other groups available</p>
-                )}
-                <button
-                  type="button"
-                  className="btn-secondary btn"
-                  onClick={() => setShowParentPicker(false)}
+      <button className="back-arrow-btn page-back" onClick={onBack} aria-label="Go back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+
+      {/* Parent context indicator / set parent — hidden for parent groups unless editing */}
+      {parentContext !== undefined && isEditing && (
+        <div className="set-parent-row">
+          {showParentPicker ? (
+            <div className="set-parent-picker">
+              {(eligibleParents ?? []).length > 0 ? (
+                <select
+                  defaultValue=""
+                  className="tag-dropdown"
+                  onChange={async (e) => {
+                    if (e.target.value) {
+                      await setParentContext(currentContext, e.target.value);
+                      setShowParentPicker(false);
+                    }
+                  }}
                 >
-                  Cancel
-                </button>
-              </div>
-            ) : (
+                  <option value="" disabled>Select parent group...</option>
+                  {(eligibleParents ?? []).map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              ) : (
+                <p className="no-tags-hint">No other groups available</p>
+              )}
               <button
                 type="button"
-                className="set-parent-btn"
-                onClick={() => setShowParentPicker(true)}
+                className="btn-secondary btn"
+                onClick={() => setShowParentPicker(false)}
               >
-                + Set parent group
+                Cancel
               </button>
-            )}
-          </div>
-        )
+            </div>
+          ) : parentContext ? (
+            <div className="parent-context-indicator">
+              <span className="parent-label">Member of:</span>
+              <button
+                className="parent-context-link"
+                onClick={() => onNavigate({ type: 'context-detail', context: parentContext })}
+              >
+                {parentContext}
+              </button>
+              <button
+                className="pencil-btn"
+                onClick={() => setShowParentPicker(true)}
+                aria-label="Change parent group"
+              >
+                {pencilIcon}
+              </button>
+              <button
+                className="remove-parent-btn"
+                onClick={() => setParentContext(currentContext, null)}
+                aria-label="Remove parent"
+              >
+                ×
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="set-parent-btn"
+              onClick={() => setShowParentPicker(true)}
+            >
+              + Set parent group
+            </button>
+          )}
+        </div>
       )}
 
       <main className="detail-content">
         {/* People section — only when people exist */}
-        {(primary.length > 0 || secondary.length > 0) && (
+        {hasPeople && (
           <>
-            {primary.length > 0 && (
+            <div className="sort-toggle-row">
+              <button
+                className={`sort-toggle-btn${sortMode === 'alpha' ? ' active' : ''}`}
+                onClick={() => setSortMode('alpha')}
+              >
+                A→Z
+              </button>
+              <button
+                className={`sort-toggle-btn${sortMode === 'recent' ? ' active' : ''}`}
+                onClick={() => setSortMode('recent')}
+              >
+                Recent
+              </button>
+            </div>
+
+            {sortedPrimary.length > 0 && (
               <section className="section-primary">
-                <h2>Primary ({primary.length})</h2>
                 <CompactPersonList
-                  people={primary}
+                  people={sortedPrimary}
                   onPersonTap={(p) => onNavigate({ type: 'person-detail', personId: p.id! })}
+                  showDate={sortMode === 'recent'}
                 />
               </section>
             )}
 
-            {secondary.length > 0 && (
+            {sortedSecondary.length > 0 && (
               <section className="section-secondary">
-                <h2>Also appears here ({secondary.length})</h2>
                 <CompactPersonList
-                  people={secondary}
+                  people={sortedSecondary}
                   onPersonTap={(p) => onNavigate({ type: 'person-detail', personId: p.id! })}
+                  showDate={sortMode === 'recent'}
                 />
               </section>
             )}

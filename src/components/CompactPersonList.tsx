@@ -3,9 +3,14 @@ import { Person } from '../types/Person';
 interface CompactPersonListProps {
   people: Person[];
   onPersonTap: (person: Person) => void;
+  showDate?: boolean;
 }
 
-export function CompactPersonList({ people, onPersonTap }: CompactPersonListProps) {
+function formatDate(d: Date): string {
+  return `${d.getMonth() + 1}/${d.getDate()}/${String(d.getFullYear()).slice(2)}`;
+}
+
+export function CompactPersonList({ people, onPersonTap, showDate }: CompactPersonListProps) {
   if (people.length === 0) {
     return null;
   }
@@ -15,7 +20,10 @@ export function CompactPersonList({ people, onPersonTap }: CompactPersonListProp
       {people.map(person => (
         <li key={person.id} onClick={() => onPersonTap(person)}>
           <span className="name">{person.name}</span>
-          {person.notes && <span className="note">{person.notes}</span>}
+          {showDate
+            ? <span className="person-date">{formatDate(person.createdAt)}</span>
+            : person.notes && <span className="note">{person.notes}</span>
+          }
         </li>
       ))}
     </ul>

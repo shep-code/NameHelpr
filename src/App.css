@@ -31,6 +31,58 @@
   color: var(--accent);
 }
 
+.help-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  margin-right: 0.75rem;
+}
+
+.help-btn:active {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.help-view .help-content {
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.help-lead {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.help-content p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.help-content em {
+  color: var(--text-primary);
+  font-style: normal;
+  font-weight: 500;
+}
+
+.help-closing {
+  font-weight: 600;
+  color: var(--text-primary) !important;
+}
+
 .data-transfer {
   display: flex;
   gap: 0.5rem;
@@ -281,6 +333,35 @@
 }
 
 /* Context Detail Sections */
+.sort-toggle-row {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0 1rem 0.75rem;
+}
+
+.sort-toggle-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 20px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.sort-toggle-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.person-date {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 .section-primary,
 .section-secondary {
   margin-bottom: 1.5rem;
@@ -303,10 +384,24 @@
 }
 
 /* Person Detail View */
+.person-name-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
 .person-content h1 {
-  font-size: 2rem;
-  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  margin: 0;
   color: var(--text-primary);
+}
+
+.person-member-of {
+  background: none;
+  border: none;
+  padding: 0;
 }
 
 .person-content .field {
@@ -698,7 +793,7 @@
   padding: 0.4rem 1rem;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border);
-  font-size: 0.8rem;
+  font-size: 1rem;
 }
 
 .parent-label {
@@ -709,7 +804,7 @@
   background: none;
   border: none;
   color: var(--accent);
-  font-size: 0.8rem;
+  font-size: 1rem;
   cursor: pointer;
   padding: 0;
   text-decoration: underline;
@@ -730,6 +825,27 @@
 
 .remove-parent-btn:active {
   color: var(--danger);
+}
+
+.back-arrow-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.back-arrow-btn.page-back {
+  display: flex;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.back-arrow-btn:active {
+  opacity: 0.7;
 }
 
 .set-parent-row {

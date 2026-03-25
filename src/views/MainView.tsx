@@ -40,6 +40,7 @@ export function MainView({ onNavigate }: MainViewProps) {
       <header className="main-header">
         <div className="header-row">
           <h1>NameHelpr</h1>
+          <button className="help-btn" onClick={() => onNavigate({ type: 'help' })} aria-label="How it works">?</button>
           <DataTransfer />
         </div>
       </header>

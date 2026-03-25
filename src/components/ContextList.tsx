@@ -24,7 +24,7 @@ export function ContextList({ contexts, onContextTap }: ContextListProps) {
           onClick={() => onContextTap(context)}
         >
           <span className="context-name">{context}</span>
-          {!isParent && <span className="context-count">{count}</span>}
+          {count > 0 && <span className="context-count">{count}</span>}
         </button>
       ))}
     </div>

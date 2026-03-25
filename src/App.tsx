@@ -7,6 +7,7 @@ import { ViewType } from './types/Navigation';
 import { MainView } from './views/MainView';
 import { ContextDetailView } from './views/ContextDetailView';
 import { PersonDetailView } from './views/PersonDetailView';
+import { HelpView } from './views/HelpView';
 import { AutoSaveForm } from './components/AutoSaveForm';
 import { PersonForm } from './components/PersonForm';
 
@@ -64,17 +65,32 @@ function App() {
         </div>
       );
 
-    case 'context-detail':
+    case 'help':
+      return (
+        <div className="app">
+          <HelpView onBack={navigateBack} />
+        </div>
+      );
+
+    case 'context-detail': {
+      const prevView = viewHistory[viewHistory.length - 1];
+      const fromContext = prevView?.type === 'context-detail'
+        ? prevView.context
+        : prevView?.type === 'main'
+          ? ''
+          : undefined;
       return (
         <div className="app">
           <ContextDetailView
             key={view.context}
             context={view.context}
+            fromContext={fromContext}
             onBack={navigateBack}
             onNavigate={navigateTo}
           />
         </div>
       );
+    }
 
     case 'person-detail':
       return (
