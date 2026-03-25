@@ -1,0 +1,97 @@
+import { useState, useEffect } from 'react';
+import { Person } from '../types/Person';
+import { ContextAutocomplete } from './ContextAutocomplete';
+
+interface PersonFormProps {
+  onSave: (name: string, context: string, notes?: string, contextTags?: string[]) => Promise<void>;
+  onCancel: () => void;
+  person?: Person;
+}
+
+export function PersonForm({ onSave, onCancel, person }: PersonFormProps) {
+  const [name, setName] = useState(person?.name || '');
+  const [context, setContext] = useState(person?.context || '');
+  const [notes, setNotes] = useState(person?.notes || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (person) {
+      setName(person.name);
+      setContext(person.context);
+      setNotes(person.notes || '');
+    }
+  }, [person]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!name.trim() || !context.trim()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await onSave(name.trim(), context.trim(), notes.trim() || undefined);
+
+      // Reset form only if adding new person (not editing)
+      if (!person) {
+        setName('');
+        setContext('');
+        setNotes('');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="form-overlay">
+      <div className="form-container">
+        <h2>{person ? 'Edit Person' : 'Add Person'}</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="name">Name *</label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g., Sarah Chen"
+              required
+              autoFocus
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="context">Met at *</label>
+            <ContextAutocomplete
+              value={context}
+              onChange={setContext}
+              id="context"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="notes">Notes (optional)</label>
+            <textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Any additional details..."
+              rows={3}
+            />
+          </div>
+
+          <div className="form-actions">
+            <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={isSubmitting}>
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+              {person ? 'Save' : 'Add Person'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
