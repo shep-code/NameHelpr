@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="88.005539mm"
-   height="88.005569mm"
-   viewBox="0 0 88.005539 88.005569"
+   width="15.160516mm"
+   height="15.160525mm"
+   viewBox="0 0 15.160516 15.160525"
    version="1.1"
    id="svg1"
    xml:space="preserve"
@@ -13,25 +13,25 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
      id="namedview1"
-     pagecolor="#000000"
+     pagecolor="#ffffff"
      bordercolor="#000000"
-     borderopacity="0.16078431"
+     borderopacity="0.25"
      inkscape:showpageshadow="2"
      inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="true"
+     inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     showguides="true" /><defs
+     showguides="true"><sodipodi:guide
+       position="-1.9311786,274.3302"
+       orientation="1,0"
+       id="guide2"
+       inkscape:locked="false" /></sodipodi:namedview><defs
      id="defs1" /><g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-53.066179,-47.130267)"><g
-       id="g6"
-       inkscape:export-filename="512.svg"
-       inkscape:export-xdpi="147.77251"
-       inkscape:export-ydpi="147.77251"
-       transform="matrix(5.8049173,0,0,5.8049173,-428.92081,-565.34441)"><path
+     transform="translate(-83.030809,-105.50963)"><g
+       id="g6"><path
          id="path2-9"
          style="fill:#0076ff;stroke-width:0.079375"
          d="m 98.191327,113.08989 a 7.5802584,7.5802584 0 0 1 -7.580258,7.58026 7.5802584,7.5802584 0 0 1 -7.580259,-7.58026 7.5802584,7.5802584 0 0 1 7.580259,-7.58026 7.5802584,7.5802584 0 0 1 7.580258,7.58026 z" /><path
