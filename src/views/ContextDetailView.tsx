@@ -13,7 +13,7 @@ interface ContextDetailViewProps {
   onNavigate: (view: ViewType) => void;
 }
 
-export function ContextDetailView({ context, fromContext, onBack, onNavigate }: ContextDetailViewProps) {
+export function ContextDetailView({ context, onBack, onNavigate }: ContextDetailViewProps) {
   const [currentContext, setCurrentContext] = useState(context);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');

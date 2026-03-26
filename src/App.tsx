@@ -8,7 +8,6 @@ import { MainView } from './views/MainView';
 import { ContextDetailView } from './views/ContextDetailView';
 import { PersonDetailView } from './views/PersonDetailView';
 import { HelpView } from './views/HelpView';
-import { AutoSaveForm } from './components/AutoSaveForm';
 import { PersonForm } from './components/PersonForm';
 
 function App() {
@@ -103,16 +102,6 @@ function App() {
         </div>
       );
 
-    case 'add-person':
-      return (
-        <div className="app">
-          <AutoSaveForm
-            onComplete={navigateBack}
-            onCancel={navigateBack}
-            initialContext={view.initialContext}
-          />
-        </div>
-      );
 
     case 'edit-person':
       if (!editingPerson) {

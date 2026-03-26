@@ -17,7 +17,7 @@ export function ContextList({ contexts, onContextTap }: ContextListProps) {
 
   return (
     <div className="context-list">
-      {contexts.map(({ context, count, isParent }) => (
+      {contexts.map(({ context, count }) => (
         <button
           key={context}
           className="context-row"
