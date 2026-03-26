@@ -39,6 +39,7 @@ export function MainView({ onNavigate }: MainViewProps) {
     <div className="main-view">
       <header className="main-header">
         <div className="header-row">
+          <img src="/icons/nh-logo.svg" alt="" className="header-logo" />
           <h1>NameHelpr</h1>
           <button className="help-btn" onClick={() => onNavigate({ type: 'help' })} aria-label="How it works">?</button>
           <DataTransfer />
