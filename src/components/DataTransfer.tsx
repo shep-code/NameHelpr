@@ -6,16 +6,23 @@ export function DataTransfer() {
   const { persons } = usePersons();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleExport = () => {
-    if (!persons || persons.length === 0) {
+  const handleExport = async () => {
+    const contexts = await db.contexts.toArray();
+
+    if ((!persons || persons.length === 0) && contexts.length === 0) {
       alert('No data to backup');
       return;
     }
 
     const data = {
-      version: 1,
+      version: 2,
       exportedAt: new Date().toISOString(),
-      persons: persons.map(p => ({
+      contexts: contexts.map(c => ({
+        name: c.name,
+        parentContext: c.parentContext || null,
+        createdAt: c.createdAt.toISOString()
+      })),
+      persons: (persons || []).map(p => ({
         name: p.name,
         context: p.context,
         contextTags: p.contextTags || [],
@@ -48,9 +55,9 @@ export function DataTransfer() {
         throw new Error('Invalid backup file format');
       }
 
-      const count = data.persons.length;
+      const contexts = Array.isArray(data.contexts) ? data.contexts : [];
       const confirmed = window.confirm(
-        `Import ${count} people? This will add to your existing data.`
+        `Restore ${contexts.length} groups and ${data.persons.length} people? This will add to your existing data.`
       );
 
       if (!confirmed) {
@@ -58,6 +65,19 @@ export function DataTransfer() {
         return;
       }
 
+      // Restore groups first (skip any whose name already exists)
+      for (const c of contexts) {
+        const existing = await db.contexts.where('name').equals(c.name).first();
+        if (!existing) {
+          await db.contexts.add({
+            name: c.name,
+            parentContext: c.parentContext || undefined,
+            createdAt: new Date(c.createdAt)
+          });
+        }
+      }
+
+      // Restore people
       for (const p of data.persons) {
         await db.persons.add({
           name: p.name,
@@ -69,7 +89,7 @@ export function DataTransfer() {
         });
       }
 
-      alert(`Restored ${count} people successfully!`);
+      alert(`Restored ${contexts.length} groups and ${data.persons.length} people successfully!`);
     } catch (err) {
       alert('Failed to import: ' + (err instanceof Error ? err.message : 'Unknown error'));
     }
