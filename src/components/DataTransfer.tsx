@@ -57,7 +57,7 @@ export function DataTransfer() {
 
       const contexts = Array.isArray(data.contexts) ? data.contexts : [];
       const confirmed = window.confirm(
-        `Restore ${contexts.length} groups and ${data.persons.length} people? This will add to your existing data.`
+        `Restore ${contexts.length} groups and ${data.persons.length} people?\n\nThis will REPLACE all current data. This cannot be undone.`
       );
 
       if (!confirmed) {
@@ -65,16 +65,17 @@ export function DataTransfer() {
         return;
       }
 
-      // Restore groups first (skip any whose name already exists)
+      // Wipe existing data
+      await db.persons.clear();
+      await db.contexts.clear();
+
+      // Restore groups first
       for (const c of contexts) {
-        const existing = await db.contexts.where('name').equals(c.name).first();
-        if (!existing) {
-          await db.contexts.add({
-            name: c.name,
-            parentContext: c.parentContext || undefined,
-            createdAt: new Date(c.createdAt)
-          });
-        }
+        await db.contexts.add({
+          name: c.name,
+          parentContext: c.parentContext || undefined,
+          createdAt: new Date(c.createdAt)
+        });
       }
 
       // Restore people
