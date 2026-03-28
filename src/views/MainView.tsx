@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { useContexts } from '../hooks/useContexts';
 import { useContextActions } from '../db/hooks';
-import { ContextList } from '../components/ContextList';
+import { GroupTree } from '../components/GroupTree';
 import { DataTransfer } from '../components/DataTransfer';
 import { ViewType } from '../types/Navigation';
 
@@ -10,7 +9,6 @@ interface MainViewProps {
 }
 
 export function MainView({ onNavigate }: MainViewProps) {
-  const contexts = useContexts();
   const { addContext } = useContextActions();
   const [showNewCtx, setShowNewCtx] = useState(false);
   const [newCtxName, setNewCtxName] = useState('');
@@ -47,10 +45,7 @@ export function MainView({ onNavigate }: MainViewProps) {
       </header>
 
       <main className="main-content">
-        <ContextList
-          contexts={contexts || []}
-          onContextTap={(ctx) => onNavigate({ type: 'context-detail', context: ctx })}
-        />
+        <GroupTree onNavigate={(ctx) => onNavigate({ type: 'context-detail', context: ctx })} />
         <div className="inline-new-context">
           {showNewCtx ? (
             <form onSubmit={handleAddContext} className="inline-new-context-form">
@@ -80,7 +75,7 @@ export function MainView({ onNavigate }: MainViewProps) {
             </form>
           ) : (
             <button className="inline-new-context-btn" onClick={() => setShowNewCtx(true)}>
-              + new group
+              + add group
             </button>
           )}
         </div>

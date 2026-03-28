@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { Person } from '../types/Person';
-import { ContextAutocomplete } from './ContextAutocomplete';
+import { db } from '../db/schema';
+import { buildGroupTree, groupOptionLabel } from '../utils/buildGroupTree';
 
 interface PersonFormProps {
   onSave: (name: string, context: string, notes?: string, contextTags?: string[]) => Promise<void>;
@@ -12,6 +14,14 @@ export function PersonForm({ onSave, onCancel, person }: PersonFormProps) {
   const [name, setName] = useState(person?.name || '');
   const [context, setContext] = useState(person?.context || '');
   const [notes, setNotes] = useState(person?.notes || '');
+
+  const allGroups = useLiveQuery(async () => {
+    const [contexts, persons] = await Promise.all([
+      db.contexts.toArray(),
+      db.persons.toArray(),
+    ]);
+    return buildGroupTree(contexts, persons.map(p => p.context));
+  }, []);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -63,12 +73,18 @@ export function PersonForm({ onSave, onCancel, person }: PersonFormProps) {
           </div>
 
           <div className="form-group">
-            <label htmlFor="context">Met at *</label>
-            <ContextAutocomplete
-              value={context}
-              onChange={setContext}
+            <label htmlFor="context">Member of *</label>
+            <select
               id="context"
-            />
+              value={context}
+              onChange={(e) => setContext(e.target.value)}
+              required
+            >
+              <option value="" disabled>Select group...</option>
+              {allGroups?.map(({ name, depth }) => (
+                <option key={name} value={name}>{groupOptionLabel(name, depth)}</option>
+              ))}
+            </select>
           </div>
 
           <div className="form-group">

@@ -2,6 +2,27 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/schema';
 import { ContextWithCount } from './useContexts';
 
+/** Returns the ancestor path from root down to contextName, e.g. ["John's Friends", "Sumac Noodlers"] */
+export function useContextPath(contextName: string): string[] | undefined {
+  return useLiveQuery(async () => {
+    const contexts = await db.contexts.toArray();
+    const parentOf: Record<string, string> = {};
+    contexts.forEach(c => {
+      if (c.parentContext) parentOf[c.name] = c.parentContext;
+    });
+
+    const path: string[] = [];
+    let current: string | undefined = contextName;
+    const visited = new Set<string>();
+    while (current && !visited.has(current)) {
+      path.unshift(current);
+      visited.add(current);
+      current = parentOf[current];
+    }
+    return path;
+  }, [contextName]);
+}
+
 export function useSubContexts(parentContext: string): ContextWithCount[] | undefined {
   return useLiveQuery(async () => {
     const children = await db.contexts
@@ -86,8 +107,7 @@ export function useEligibleParents(contextName: string): string[] | undefined {
     return Array.from(allContextNames)
       .filter(name =>
         name !== contextName &&
-        !descendants.has(name) &&
-        (primaryCounts[name] || 0) === 0
+        !descendants.has(name)
       )
       .sort((a, b) => a.localeCompare(b));
   }, [contextName]);
