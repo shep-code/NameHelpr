@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { usePeopleByContext } from '../hooks/usePeopleByContext';
-import { useSubContexts, useParentContext, useContextPath } from '../hooks/useContextHierarchy';
+import { useSubContexts, useParentContext } from '../hooks/useContextHierarchy';
 import { useContextActions, usePersons } from '../db/hooks';
 import { db } from '../db/schema';
 import { Person } from '../types/Person';
@@ -46,7 +46,6 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
   const peopleByContext = usePeopleByContext(currentContext);
   const subContexts = useSubContexts(currentContext);
   const parentContext = useParentContext(currentContext);
-  const contextPath = useContextPath(currentContext);
   const { renameContext, setParentContext, addContext, deleteContext } = useContextActions();
   const { addPerson, updatePerson, deletePerson } = usePersons();
 
