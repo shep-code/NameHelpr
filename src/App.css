@@ -326,6 +326,39 @@
   background: var(--bg-primary);
 }
 
+/* Breadcrumb */
+.breadcrumb-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  padding: 0.5rem 1rem 0;
+}
+
+.breadcrumb-fragment {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.breadcrumb-sep {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.breadcrumb-item {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.breadcrumb-item:active {
+  color: var(--accent);
+}
+
 .back-btn {
   background: none;
   border: none;
@@ -914,6 +947,54 @@
 .person-edit-actions {
   display: flex;
   gap: 0.5rem;
+  align-items: center;
+}
+
+.person-edit-delete {
+  margin-left: auto;
+}
+
+.person-edit-confirm-btn,
+.person-edit-cancel-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.person-edit-confirm-btn {
+  color: var(--accent);
+}
+
+.person-edit-confirm-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.person-edit-cancel-btn {
+  color: var(--text-muted);
+}
+
+.compact-person-list li.person-expanded {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0.5rem 1rem;
+  gap: 0.2rem;
+}
+
+.person-expanded-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.person-expanded-notes {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding-left: 0.1rem;
 }
 
 /* Selection mode */

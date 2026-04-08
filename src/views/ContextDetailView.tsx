@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { usePeopleByContext } from '../hooks/usePeopleByContext';
-import { useSubContexts, useParentContext } from '../hooks/useContextHierarchy';
+import { useSubContexts, useContextPath } from '../hooks/useContextHierarchy';
 import { useContextActions, usePersons } from '../db/hooks';
 import { Person } from '../types/Person';
 import { db } from '../db/schema';
@@ -42,6 +42,8 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
   const newPersonNameRef = useRef<HTMLInputElement>(null);
   const [showMoveGroupPicker, setShowMoveGroupPicker] = useState(false);
   const [moveGroupDestination, setMoveGroupDestination] = useState('');
+  const [headerExpanded, setHeaderExpanded] = useState(false);
+  const [expandedPersonId, setExpandedPersonId] = useState<number | null>(null);
   const [editingPersonId, setEditingPersonId] = useState<number | null>(null);
   const [editPersonName, setEditPersonName] = useState('');
   const [editPersonNotes, setEditPersonNotes] = useState('');
@@ -49,7 +51,7 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
 
   const peopleByContext = usePeopleByContext(currentContext);
   const subContexts = useSubContexts(currentContext);
-  const parentContext = useParentContext(currentContext);
+  const contextPath = useContextPath(currentContext);
   const { renameContext, setParentContext, addContext, deleteContext } = useContextActions();
   const { addPerson, updatePerson, deletePerson } = usePersons();
 
@@ -148,6 +150,7 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
   };
 
   const handleStartEditPerson = (person: Person) => {
+    setExpandedPersonId(null);
     setEditingPersonId(person.id!);
     setEditPersonName(person.name);
     setEditPersonNotes(person.notes || '');
@@ -175,6 +178,7 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
   const cancelEditing = () => {
     setIsEditing(false);
     setEditError('');
+    setHeaderExpanded(false);
   };
 
   const handleRename = async () => {
@@ -189,19 +193,13 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
       await renameContext(currentContext, trimmed);
       setCurrentContext(trimmed);
       setIsEditing(false);
+      setHeaderExpanded(false);
     } catch {
       setEditError('A group with that name already exists.');
     } finally {
       setSaving(false);
     }
   };
-
-  const homeIcon = (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-      <polyline points="9 22 9 12 15 12 15 22"></polyline>
-    </svg>
-  );
 
   const pencilIcon = (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -220,12 +218,25 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
     </svg>
   );
 
+  const checkIcon = (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+
+  const xIcon = (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+
   if (!peopleByContext) {
     return (
       <div className="context-detail-view">
         <header className="detail-header">
           <button className="home-btn" onClick={() => onNavigate({ type: 'main' })} aria-label="Home">
-            {homeIcon}
+            <img src="/icons/nh-logo.svg" alt="" className="header-logo" />
           </button>
         </header>
         <p>Loading...</p>
@@ -256,19 +267,27 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
     }
   };
 
+  // Ancestors = path without the current context (last item)
+  const ancestors = contextPath ? contextPath.slice(0, -1) : [];
+
   return (
     <div className={`context-detail-view${hasPeople ? ' has-people' : ''}`}>
+      {ancestors.length > 0 && (
+        <nav className="breadcrumb-row">
+          <button className="breadcrumb-item" onClick={() => onNavigate({ type: 'main' })}>Home</button>
+          {ancestors.map((ancestor) => (
+            <span key={ancestor} className="breadcrumb-fragment">
+              <span className="breadcrumb-sep">›</span>
+              <button className="breadcrumb-item" onClick={() => onNavigate({ type: 'context-detail', context: ancestor })}>
+                {ancestor}
+              </button>
+            </span>
+          ))}
+        </nav>
+      )}
       <header className="detail-header">
-        <button
-          className="back-btn"
-          onClick={() => parentContext
-            ? onNavigate({ type: 'context-detail', context: parentContext })
-            : onNavigate({ type: 'main' })
-          }
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
+        <button className="home-btn" onClick={() => onNavigate({ type: 'main' })} aria-label="Home">
+          <img src="/icons/nh-logo.svg" alt="" className="header-logo" />
         </button>
         {isEditing ? (
           <div className="context-edit-inline">
@@ -281,25 +300,27 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
               autoCapitalize="words"
             />
             {editError && <span className="context-edit-error">{editError}</span>}
-            <button className="context-edit-save btn btn-primary" onClick={handleRename} disabled={saving}>
-              {saving ? '...' : 'Save'}
+            <button className="person-edit-confirm-btn" onClick={handleRename} disabled={saving} aria-label="Save">
+              {saving ? '...' : checkIcon}
             </button>
-            <button className="context-edit-cancel btn btn-secondary" onClick={cancelEditing}>
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <>
-            <h1>{currentContext}</h1>
-            <button className="pencil-btn" onClick={startEditing} aria-label="Edit group name">
-              {pencilIcon}
+            <button className="person-edit-cancel-btn" onClick={cancelEditing} aria-label="Cancel">
+              {xIcon}
             </button>
             {canDelete && (
               <button className="trash-btn" onClick={handleDelete} aria-label="Delete group">
                 {trashIcon}
               </button>
             )}
+          </div>
+        ) : headerExpanded ? (
+          <>
+            <h1 onClick={() => setHeaderExpanded(false)}>{currentContext}</h1>
+            <button className="pencil-btn" onClick={startEditing} aria-label="Edit group name">
+              {pencilIcon}
+            </button>
           </>
+        ) : (
+          <h1 onClick={() => setHeaderExpanded(true)}>{currentContext}</h1>
         )}
       </header>
 
@@ -315,6 +336,8 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
                   selectionMode={selectionMode}
                   selectedIds={selectedIds}
                   onToggleSelect={handleToggleSelect}
+                  expandedPersonId={expandedPersonId}
+                  onExpand={(id) => setExpandedPersonId(id)}
                   editingPersonId={editingPersonId}
                   editName={editPersonName}
                   editNotes={editPersonNotes}
@@ -338,6 +361,8 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
                 <CompactPersonList
                   people={sortedSecondary}
                   showDate={sortMode === 'recent'}
+                  expandedPersonId={expandedPersonId}
+                  onExpand={(id) => setExpandedPersonId(id)}
                   editingPersonId={editingPersonId}
                   editName={editPersonName}
                   editNotes={editPersonNotes}
