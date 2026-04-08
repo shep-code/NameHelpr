@@ -42,6 +42,10 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
   const newPersonNameRef = useRef<HTMLInputElement>(null);
   const [showMoveGroupPicker, setShowMoveGroupPicker] = useState(false);
   const [moveGroupDestination, setMoveGroupDestination] = useState('');
+  const [editingPersonId, setEditingPersonId] = useState<number | null>(null);
+  const [editPersonName, setEditPersonName] = useState('');
+  const [editPersonNotes, setEditPersonNotes] = useState('');
+  const [editPersonSaving, setEditPersonSaving] = useState(false);
 
   const peopleByContext = usePeopleByContext(currentContext);
   const subContexts = useSubContexts(currentContext);
@@ -142,6 +146,25 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
       setMoveSaving(false);
     }
   };
+
+  const handleStartEditPerson = (person: Person) => {
+    setEditingPersonId(person.id!);
+    setEditPersonName(person.name);
+    setEditPersonNotes(person.notes || '');
+  };
+
+  const handleSaveEditPerson = async () => {
+    if (!editingPersonId || !editPersonName.trim()) return;
+    setEditPersonSaving(true);
+    try {
+      await updatePerson(editingPersonId, { name: editPersonName.trim(), notes: editPersonNotes.trim() || undefined });
+      setEditingPersonId(null);
+    } finally {
+      setEditPersonSaving(false);
+    }
+  };
+
+  const handleCancelEditPerson = () => setEditingPersonId(null);
 
   const startEditing = () => {
     setEditName(currentContext);
@@ -292,7 +315,15 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
                   selectionMode={selectionMode}
                   selectedIds={selectedIds}
                   onToggleSelect={handleToggleSelect}
-                  onEdit={(p) => onNavigate({ type: 'edit-person', personId: p.id! })}
+                  editingPersonId={editingPersonId}
+                  editName={editPersonName}
+                  editNotes={editPersonNotes}
+                  onEditNameChange={setEditPersonName}
+                  onEditNotesChange={setEditPersonNotes}
+                  onEditSave={handleSaveEditPerson}
+                  onEditCancel={handleCancelEditPerson}
+                  editSaving={editPersonSaving}
+                  onEdit={handleStartEditPerson}
                   onDelete={async (p) => {
                     if (window.confirm(`Delete ${p.name}?`)) {
                       await deletePerson(p.id!);
@@ -307,7 +338,15 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
                 <CompactPersonList
                   people={sortedSecondary}
                   showDate={sortMode === 'recent'}
-                  onEdit={(p) => onNavigate({ type: 'edit-person', personId: p.id! })}
+                  editingPersonId={editingPersonId}
+                  editName={editPersonName}
+                  editNotes={editPersonNotes}
+                  onEditNameChange={setEditPersonName}
+                  onEditNotesChange={setEditPersonNotes}
+                  onEditSave={handleSaveEditPerson}
+                  onEditCancel={handleCancelEditPerson}
+                  editSaving={editPersonSaving}
+                  onEdit={handleStartEditPerson}
                   onDelete={async (p) => {
                     if (window.confirm(`Delete ${p.name}?`)) {
                       await deletePerson(p.id!);
@@ -319,18 +358,7 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
           </>
         )}
 
-        {/* Sub-groups — shown below people with a spacer */}
-        {(subContexts ?? []).length > 0 && (
-          <>
-            {hasPeople && <div className="section-divider" />}
-            <ContextList
-              contexts={subContexts!}
-              onContextTap={(ctx) => onNavigate({ type: 'context-detail', context: ctx })}
-            />
-          </>
-        )}
-
-        {/* Sort toggle — right justified, above add buttons */}
+        {/* Sort toggle — right justified, above subgroups and add buttons */}
         {hasPeople && (
           <div className="sort-toggle-row">
             <span className="sort-toggle-label">Sort list by:</span>
@@ -347,6 +375,17 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
               Recent
             </button>
           </div>
+        )}
+
+        {/* Sub-groups — shown below people with a spacer */}
+        {(subContexts ?? []).length > 0 && (
+          <>
+            {hasPeople && <div className="section-divider" />}
+            <ContextList
+              contexts={subContexts!}
+              onContextTap={(ctx) => onNavigate({ type: 'context-detail', context: ctx })}
+            />
+          </>
         )}
 
         {/* Add / move controls */}

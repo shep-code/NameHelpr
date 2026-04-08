@@ -6,6 +6,14 @@ interface CompactPersonListProps {
   selectionMode?: boolean;
   selectedIds?: Set<number>;
   onToggleSelect?: (person: Person) => void;
+  editingPersonId?: number | null;
+  editName?: string;
+  editNotes?: string;
+  onEditNameChange?: (v: string) => void;
+  onEditNotesChange?: (v: string) => void;
+  onEditSave?: () => void;
+  onEditCancel?: () => void;
+  editSaving?: boolean;
   onEdit?: (person: Person) => void;
   onDelete?: (person: Person) => void;
 }
@@ -28,14 +36,50 @@ const trashIcon = (
   </svg>
 );
 
-export function CompactPersonList({ people, showDate, selectionMode, selectedIds, onToggleSelect, onEdit, onDelete }: CompactPersonListProps) {
-  if (people.length === 0) {
-    return null;
-  }
+export function CompactPersonList({
+  people, showDate, selectionMode, selectedIds, onToggleSelect,
+  editingPersonId, editName, editNotes, onEditNameChange, onEditNotesChange,
+  onEditSave, onEditCancel, editSaving, onEdit, onDelete,
+}: CompactPersonListProps) {
+  if (people.length === 0) return null;
 
   return (
     <ul className="compact-person-list">
       {people.map(person => {
+        if (editingPersonId === person.id) {
+          return (
+            <li key={person.id} className="person-inline-edit">
+              <input
+                className="inline-new-context-input"
+                value={editName}
+                onChange={e => onEditNameChange?.(e.target.value)}
+                autoFocus
+                autoCapitalize="words"
+                placeholder="Name..."
+              />
+              <input
+                className="inline-new-context-input"
+                value={editNotes}
+                onChange={e => onEditNotesChange?.(e.target.value)}
+                autoCapitalize="sentences"
+                placeholder="Notes (optional)..."
+              />
+              <div className="person-edit-actions">
+                <button
+                  className="btn btn-primary inline-form-btn"
+                  onClick={onEditSave}
+                  disabled={!editName?.trim() || editSaving}
+                >
+                  {editSaving ? '...' : 'Save'}
+                </button>
+                <button className="btn btn-secondary inline-form-btn" onClick={onEditCancel}>
+                  Cancel
+                </button>
+              </div>
+            </li>
+          );
+        }
+
         const isSelected = selectionMode && selectedIds?.has(person.id!);
         return (
           <li

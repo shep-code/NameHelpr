@@ -316,10 +316,8 @@
 
 /* Section divider between people and sub-groups */
 .section-divider {
-  height: 0.75rem;
-  background: var(--bg-secondary);
+  height: 0;
   border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
 }
 
 /* Back nav */
@@ -366,7 +364,7 @@
   justify-content: space-between;
   padding: 1rem;
   border-bottom: 1px solid var(--border);
-  gap: 1rem;
+  gap: 0.15rem;
 }
 
 .detail-header h1 {
@@ -449,7 +447,7 @@
   align-items: center;
   justify-content: flex-end;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1rem 3.5rem;
 }
 
 .sort-toggle-label {
@@ -904,6 +902,18 @@
   padding: 0;
   text-decoration: underline;
   text-decoration-style: dotted;
+}
+
+.compact-person-list li.person-inline-edit {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+}
+
+.person-edit-actions {
+  display: flex;
+  gap: 0.5rem;
 }
 
 /* Selection mode */
