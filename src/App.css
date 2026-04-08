@@ -359,9 +359,6 @@
   flex-direction: column;
 }
 
-.context-detail-view.has-people {
-  background: #666666;
-}
 
 .detail-header {
   display: flex;
