@@ -4,15 +4,15 @@
   font-weight: 400;
 
   /* Dark theme colors */
-  --bg-primary: #000000;
-  --bg-secondary: #1a1a1a;
-  --bg-tertiary: #2a2a2a;
+  --bg-primary: #4d4d4d;
+  --bg-secondary: #404040;
+  --bg-tertiary: #383838;
   --text-primary: #ffffff;
-  --text-secondary: #a0a0a0;
-  --text-muted: #666666;
-  --accent: #3B82F6;
-  --accent-hover: #2563eb;
-  --border: #333333;
+  --text-secondary: #cccccc;
+  --text-muted: #aaaaaa;
+  --accent: #ffcd3c;
+  --accent-hover: #f0b800;
+  --border: #5a5a5a;
   --danger: #ef4444;
 
   color-scheme: dark;

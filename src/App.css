@@ -99,9 +99,9 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border: 1px solid var(--border);
-  color: var(--text-secondary);
+  color: #ffffff;
   padding: 0.4rem 0.6rem;
   border-radius: 6px;
   cursor: pointer;
@@ -170,7 +170,7 @@
   background: none;
   border: none;
   border-bottom: 1px solid var(--border);
-  color: var(--text-primary);
+  color: var(--accent);
   font-size: 1rem;
   cursor: pointer;
   text-align: left;
@@ -222,7 +222,7 @@
 
 .compact-person-list li {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
@@ -234,15 +234,22 @@
   background: var(--bg-secondary);
 }
 
+.person-row-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
 .compact-person-list .name {
-  color: var(--text-primary);
+  color: #ffffff;
   font-weight: 500;
 }
 
 .compact-person-list .note {
   color: var(--text-muted);
   font-size: 0.875rem;
-  flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -290,7 +297,7 @@
   background: none;
   border: none;
   text-align: left;
-  color: var(--text-primary);
+  color: var(--accent);
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
@@ -315,68 +322,23 @@
   border-bottom: 1px solid var(--border);
 }
 
-/* Breadcrumb */
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  overflow: hidden;
+/* Back nav */
+.back-nav {
   padding: 0.4rem 1rem;
   border-bottom: 1px solid var(--border);
   background: var(--bg-secondary);
-  gap: 0;
 }
 
-.breadcrumb-home {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.breadcrumb-segment {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  flex-shrink: 1;
-}
-
-.breadcrumb-sep {
-  color: var(--text-muted);
-  font-size: 0.75rem;
-  padding: 0 0.25rem;
-  flex-shrink: 0;
-}
-
-.breadcrumb-link {
+.back-btn {
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
   color: var(--accent);
   font-size: 0.8rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 120px;
-}
-
-.breadcrumb-current {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 160px;
-}
-
-.breadcrumb-ellipsis {
-  color: var(--text-muted);
-  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
 }
 
 /* Edit controls row */
@@ -416,6 +378,10 @@
   flex-direction: column;
 }
 
+.context-detail-view.has-people {
+  background: #666666;
+}
+
 .detail-header {
   display: flex;
   align-items: center;
@@ -429,7 +395,7 @@
   flex: 1;
   margin: 0;
   font-size: 1.25rem;
-  color: var(--text-primary);
+  color: var(--accent);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -439,7 +405,7 @@
 .home-btn {
   background: none;
   border: none;
-  color: var(--accent);
+  color: #ffffff;
   font-size: 1rem;
   cursor: pointer;
   padding: 0.5rem;
@@ -502,8 +468,9 @@
 /* Context Detail Sections */
 .sort-toggle-row {
   display: flex;
+  justify-content: flex-end;
   gap: 0.5rem;
-  padding: 0 1rem 0.75rem;
+  padding: 0.5rem 1rem;
 }
 
 .sort-toggle-btn {
@@ -553,16 +520,21 @@
 /* Person Detail View */
 .person-name-row {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.5rem 1rem;
-  margin-bottom: 1.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.person-name-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .person-content h1 {
   font-size: 1.25rem;
   margin: 0;
-  color: var(--text-primary);
+  color: #ffffff;
 }
 
 .person-member-of {
@@ -1212,7 +1184,7 @@
 .pencil-btn {
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: #ffffff;
   cursor: pointer;
   padding: 0.5rem;
   min-height: 44px;
@@ -1230,7 +1202,7 @@
 .trash-btn {
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: #ffffff;
   cursor: pointer;
   padding: 0.5rem;
   display: flex;
@@ -1370,7 +1342,7 @@
 .inline-new-context-btn {
   background: none;
   border: none;
-  color: var(--accent);
+  color: #ffffff;
   font-size: 0.9rem;
   cursor: pointer;
   padding: 0;

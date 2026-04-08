@@ -11,8 +11,8 @@ export default defineConfig({
         name: 'NameHelpr',
         short_name: 'NameHelpr',
         description: 'Remember people by the context you met them',
-        theme_color: '#3B82F6',
-        background_color: '#ffffff',
+        theme_color: '#4d4d4d',
+        background_color: '#4d4d4d',
         display: 'standalone',
         start_url: '/',
         icons: [

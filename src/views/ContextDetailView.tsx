@@ -41,13 +41,14 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
   const [newPersonNotes, setNewPersonNotes] = useState('');
   const [newPersonSaving, setNewPersonSaving] = useState(false);
   const newPersonNameRef = useRef<HTMLInputElement>(null);
+  const [showMoveGroupPicker, setShowMoveGroupPicker] = useState(false);
 
   const peopleByContext = usePeopleByContext(currentContext);
   const subContexts = useSubContexts(currentContext);
   const parentContext = useParentContext(currentContext);
   const contextPath = useContextPath(currentContext);
   const { renameContext, setParentContext, addContext, deleteContext } = useContextActions();
-  const { addPerson, updatePerson } = usePersons();
+  const { addPerson, updatePerson, deletePerson } = usePersons();
 
   const groupTree = useLiveQuery(async () => {
     const [contexts, persons] = await Promise.all([
@@ -241,12 +242,19 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
   };
 
   return (
-    <div className="context-detail-view">
+    <div className={`context-detail-view${hasPeople ? ' has-people' : ''}`}>
       <header className="detail-header">
-        <button className="home-btn" onClick={() => onNavigate({ type: 'main' })} aria-label="Home">
-          {homeIcon}
+        <button
+          className="back-btn"
+          onClick={() => parentContext
+            ? onNavigate({ type: 'context-detail', context: parentContext })
+            : onNavigate({ type: 'main' })
+          }
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
         </button>
-
         {isEditing ? (
           <div className="context-edit-inline">
             <input
@@ -279,46 +287,6 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
           </>
         )}
       </header>
-
-      {/* Breadcrumb */}
-      <nav className="breadcrumb" aria-label="breadcrumb">
-        <button className="breadcrumb-home" onClick={() => onNavigate({ type: 'main' })} aria-label="Home">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-        </button>
-        {(() => {
-          const path = contextPath ?? [];
-          // For deep paths show: first › … › second-to-last › last
-          const segments = path.length > 3
-            ? [path[0], null, ...path.slice(-2)]
-            : path;
-          return segments.map((segment, i) =>
-            segment === null ? (
-              <span key="ellipsis" className="breadcrumb-segment">
-                <span className="breadcrumb-sep">›</span>
-                <span className="breadcrumb-ellipsis">…</span>
-              </span>
-            ) : i === segments.length - 1 ? (
-              <span key={segment} className="breadcrumb-segment">
-                <span className="breadcrumb-sep">›</span>
-                <span className="breadcrumb-current">{segment}</span>
-              </span>
-            ) : (
-              <span key={segment} className="breadcrumb-segment">
-                <span className="breadcrumb-sep">›</span>
-                <button
-                  className="breadcrumb-link"
-                  onClick={() => onNavigate({ type: 'context-detail', context: segment })}
-                >
-                  {segment}
-                </button>
-              </span>
-            )
-          );
-        })()}
-      </nav>
 
       {/* Edit mode controls: Move Members (left) + Member of (right) on same row */}
       {isEditing && !selectionMode && (
@@ -355,15 +323,7 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
                       ×
                     </button>
                   </>
-                ) : (
-                  <button
-                    type="button"
-                    className="set-parent-btn"
-                    onClick={() => setShowParentPicker(true)}
-                  >
-                    + Set parent group
-                  </button>
-                )
+                ) : null
               )}
             </div>
           </div>
@@ -406,7 +366,7 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
         {/* People section */}
         {hasPeople && (
           <>
-            {selectionMode ? (
+            {selectionMode && (
               <div className="select-all-row">
                 <button
                   className="select-all-btn"
@@ -419,32 +379,22 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
                 </button>
                 <span className="selected-count">{selectedIds.size} of {sortedPrimary.length} selected</span>
               </div>
-            ) : (
-              <div className="sort-toggle-row">
-                <button
-                  className={`sort-toggle-btn${sortMode === 'alpha' ? ' active' : ''}`}
-                  onClick={() => setSortMode('alpha')}
-                >
-                  A→Z
-                </button>
-                <button
-                  className={`sort-toggle-btn${sortMode === 'recent' ? ' active' : ''}`}
-                  onClick={() => setSortMode('recent')}
-                >
-                  Recent
-                </button>
-              </div>
             )}
 
             {sortedPrimary.length > 0 && (
               <section className="section-primary">
                 <CompactPersonList
                   people={sortedPrimary}
-                  onPersonTap={(p) => onNavigate({ type: 'person-detail', personId: p.id! })}
                   showDate={!selectionMode && sortMode === 'recent'}
                   selectionMode={selectionMode}
                   selectedIds={selectedIds}
                   onToggleSelect={handleToggleSelect}
+                  onEdit={(p) => onNavigate({ type: 'edit-person', personId: p.id! })}
+                  onDelete={async (p) => {
+                    if (window.confirm(`Delete ${p.name}?`)) {
+                      await deletePerson(p.id!);
+                    }
+                  }}
                 />
               </section>
             )}
@@ -453,8 +403,13 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
               <section className="section-secondary">
                 <CompactPersonList
                   people={sortedSecondary}
-                  onPersonTap={(p) => onNavigate({ type: 'person-detail', personId: p.id! })}
                   showDate={sortMode === 'recent'}
+                  onEdit={(p) => onNavigate({ type: 'edit-person', personId: p.id! })}
+                  onDelete={async (p) => {
+                    if (window.confirm(`Delete ${p.name}?`)) {
+                      await deletePerson(p.id!);
+                    }
+                  }}
                 />
               </section>
             )}
@@ -530,6 +485,24 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
           </>
         )}
 
+        {/* Sort toggle — right justified, above add buttons */}
+        {hasPeople && !selectionMode && (
+          <div className="sort-toggle-row">
+            <button
+              className={`sort-toggle-btn${sortMode === 'alpha' ? ' active' : ''}`}
+              onClick={() => setSortMode('alpha')}
+            >
+              A→Z
+            </button>
+            <button
+              className={`sort-toggle-btn${sortMode === 'recent' ? ' active' : ''}`}
+              onClick={() => setSortMode('recent')}
+            >
+              Recent
+            </button>
+          </div>
+        )}
+
         {/* Add group / Add person — same row when neither form is open */}
         {!selectionMode && (
           <div className="inline-add-row">
@@ -584,13 +557,45 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
                   Done
                 </button>
               </form>
+            ) : showMoveGroupPicker ? (
+              <div className="set-parent-picker">
+                {(eligibleParentsTree ?? []).length > 0 ? (
+                  <select
+                    defaultValue=""
+                    className="tag-dropdown"
+                    onChange={async (e) => {
+                      if (e.target.value) {
+                        await setParentContext(currentContext, e.target.value);
+                        setShowMoveGroupPicker(false);
+                      }
+                    }}
+                  >
+                    <option value="" disabled>Select parent group...</option>
+                    {(eligibleParentsTree ?? []).map(({ name, depth }) => (
+                      <option key={name} value={name}>{groupOptionLabel(name, depth)}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="no-tags-hint">No other groups available</p>
+                )}
+                <button
+                  type="button"
+                  className="btn btn-secondary inline-form-btn"
+                  onClick={() => setShowMoveGroupPicker(false)}
+                >
+                  Cancel
+                </button>
+              </div>
             ) : (
               <div className="inline-add-buttons">
+                <button className="inline-new-context-btn" onClick={() => setShowNewPerson(true)}>
+                  + add person
+                </button>
                 <button className="inline-new-context-btn" onClick={() => setShowNewSubCtx(true)}>
                   + add group
                 </button>
-                <button className="inline-new-context-btn" onClick={() => setShowNewPerson(true)}>
-                  + add person
+                <button className="inline-new-context-btn" onClick={() => setShowMoveGroupPicker(true)}>
+                  + move group
                 </button>
               </div>
             )}
