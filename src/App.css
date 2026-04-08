@@ -41,7 +41,7 @@
 .help-btn {
   background: none;
   border: 1px solid var(--border);
-  color: var(--text-muted);
+  color: #fff;
   border-radius: 50%;
   width: 28px;
   height: 28px;
@@ -325,8 +325,7 @@
 /* Back nav */
 .back-nav {
   padding: 0.4rem 1rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
 }
 
 .back-btn {
@@ -334,29 +333,11 @@
   border: none;
   padding: 0;
   cursor: pointer;
-  color: var(--accent);
+  color: #fff;
   font-size: 0.8rem;
   display: flex;
   align-items: center;
   gap: 0.2rem;
-}
-
-/* Edit controls row */
-.edit-controls-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.4rem 1rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-secondary);
-  gap: 0.5rem;
-}
-
-.member-of-inline {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-left: auto;
 }
 
 /* Inline add row */
@@ -468,15 +449,22 @@
 /* Context Detail Sections */
 .sort-toggle-row {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
 }
 
+.sort-toggle-label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-right: 0.25rem;
+}
+
 .sort-toggle-btn {
   background: none;
   border: 1px solid var(--border);
-  color: var(--text-muted);
+  color: #fff;
   border-radius: 20px;
   padding: 0.25rem 0.75rem;
   font-size: 0.8rem;
@@ -484,8 +472,8 @@
 }
 
 .sort-toggle-btn.active {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: #d4a800;
+  border-color: #d4a800;
   color: #fff;
 }
 
@@ -616,28 +604,6 @@
   line-height: 1.6;
 }
 
-/* Floating Action Button */
-.fab {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: white;
-  border: none;
-  font-size: 2rem;
-  line-height: 1;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-  z-index: 100;
-}
-
-.fab:active {
-  background: var(--accent-hover);
-}
-
 /* Form Overlay (Edit Form) */
 .form-overlay {
   position: fixed;
@@ -725,12 +691,14 @@
 }
 
 .btn-primary {
-  background: var(--accent);
-  color: white;
+  background: #d4a800;
+  border-color: #d4a800;
+  color: #fff;
 }
 
 .btn-primary:active:not(:disabled) {
-  background: var(--accent-hover);
+  background: #b88f00;
+  border-color: #b88f00;
 }
 
 .btn-primary:disabled {
@@ -890,17 +858,6 @@
   border-color: var(--accent);
 }
 
-.add-tag-btn {
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 0 1rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  min-height: 44px;
-}
-
 /* Context Autocomplete */
 .context-autocomplete {
   width: 100%;
@@ -952,84 +909,7 @@
   text-decoration-style: dotted;
 }
 
-.remove-parent-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 0 0.25rem;
-  margin-left: auto;
-  min-height: 32px;
-  min-width: 32px;
-}
-
-.remove-parent-btn:active {
-  color: var(--danger);
-}
-
-.back-arrow-btn {
-  background: none;
-  border: none;
-  color: var(--accent);
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.back-arrow-btn.page-back {
-  display: flex;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.back-arrow-btn:active {
-  opacity: 0.7;
-}
-
-.move-members-row {
-  padding: 0.4rem 1rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-secondary);
-}
-
-.move-members-btn {
-  background: none;
-  border: none;
-  color: var(--accent);
-  font-size: 0.875rem;
-  cursor: pointer;
-  padding: 0;
-  font-weight: 500;
-}
-
 /* Selection mode */
-.select-all-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-secondary);
-}
-
-.select-all-btn {
-  background: none;
-  border: none;
-  color: var(--accent);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 0;
-}
-
-.selected-count {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
 .compact-person-list li.selected {
   background: var(--bg-secondary);
 }
@@ -1044,8 +924,8 @@
 }
 
 .selection-check.checked {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: #d4a800;
+  border-color: #d4a800;
   position: relative;
 }
 
@@ -1131,21 +1011,6 @@
 .move-bar-actions .btn {
   flex: 1;
   min-height: 44px;
-}
-
-.set-parent-row {
-  padding: 0.4rem 1rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-secondary);
-}
-
-.set-parent-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  cursor: pointer;
-  padding: 0;
 }
 
 .set-parent-picker {
@@ -1403,10 +1268,3 @@
   margin: 0;
 }
 
-/* Responsive */
-@media (max-width: 640px) {
-  .fab {
-    bottom: 1.5rem;
-    right: 1.5rem;
-  }
-}

@@ -3,8 +3,8 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { usePeopleByContext } from '../hooks/usePeopleByContext';
 import { useSubContexts, useParentContext } from '../hooks/useContextHierarchy';
 import { useContextActions, usePersons } from '../db/hooks';
-import { db } from '../db/schema';
 import { Person } from '../types/Person';
+import { db } from '../db/schema';
 import { CompactPersonList } from '../components/CompactPersonList';
 import { ContextList } from '../components/ContextList';
 import { ViewType } from '../types/Navigation';
@@ -23,7 +23,6 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
   const [editName, setEditName] = useState('');
   const [editError, setEditError] = useState('');
   const [saving, setSaving] = useState(false);
-  const [showParentPicker, setShowParentPicker] = useState(false);
   const [showNewSubCtx, setShowNewSubCtx] = useState(false);
   const [newSubCtxName, setNewSubCtxName] = useState('');
   const [newSubCtxError, setNewSubCtxError] = useState('');
@@ -42,6 +41,7 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
   const [newPersonSaving, setNewPersonSaving] = useState(false);
   const newPersonNameRef = useRef<HTMLInputElement>(null);
   const [showMoveGroupPicker, setShowMoveGroupPicker] = useState(false);
+  const [moveGroupDestination, setMoveGroupDestination] = useState('');
 
   const peopleByContext = usePeopleByContext(currentContext);
   const subContexts = useSubContexts(currentContext);
@@ -58,10 +58,10 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
     return buildGroupTree(contexts, extraNames);
   }, []);
 
-  // All groups except current, in hierarchical order (for move bar)
+  // All groups except current (for move people destination)
   const allGroupsTree = (groupTree ?? []).filter(g => g.name !== currentContext);
 
-  // Eligible parents: all groups except current and its descendants
+  // Eligible parents: all groups except current and its descendants (for move group)
   const eligibleParentsTree = useLiveQuery(async () => {
     const [contexts, persons] = await Promise.all([
       db.contexts.toArray(),
@@ -105,24 +105,6 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
     }
   };
 
-  const startEditing = () => {
-    setEditName(currentContext);
-    setEditError('');
-    setIsEditing(true);
-  };
-
-  const cancelEditing = () => {
-    setIsEditing(false);
-    setEditError('');
-    setShowParentPicker(false);
-    setSelectionMode(false);
-    setSelectedIds(new Set());
-    setMoveDestination('');
-    setShowNewGroupInput(false);
-    setNewGroupName('');
-    setNewGroupError('');
-  };
-
   const handleCancelSelection = () => {
     setSelectionMode(false);
     setSelectedIds(new Set());
@@ -159,6 +141,17 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
     } finally {
       setMoveSaving(false);
     }
+  };
+
+  const startEditing = () => {
+    setEditName(currentContext);
+    setEditError('');
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setEditError('');
   };
 
   const handleRename = async () => {
@@ -287,99 +280,10 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
         )}
       </header>
 
-      {/* Edit mode controls: Move Members (left) + Member of (right) on same row */}
-      {isEditing && !selectionMode && (
-        <>
-          <div className="edit-controls-row">
-            {primary.length > 0 && (
-              <button className="move-members-btn" onClick={() => setSelectionMode(true)}>
-                Move members
-              </button>
-            )}
-            <div className="member-of-inline">
-              {parentContext !== undefined && (
-                parentContext ? (
-                  <>
-                    <span className="parent-label">Member of:</span>
-                    <button
-                      className="parent-context-link"
-                      onClick={() => onNavigate({ type: 'context-detail', context: parentContext })}
-                    >
-                      {parentContext}
-                    </button>
-                    <button
-                      className="pencil-btn"
-                      onClick={() => setShowParentPicker(true)}
-                      aria-label="Change parent group"
-                    >
-                      {pencilIcon}
-                    </button>
-                    <button
-                      className="remove-parent-btn"
-                      onClick={() => setParentContext(currentContext, null)}
-                      aria-label="Remove parent"
-                    >
-                      ×
-                    </button>
-                  </>
-                ) : null
-              )}
-            </div>
-          </div>
-          {showParentPicker && (
-            <div className="set-parent-row">
-              <div className="set-parent-picker">
-                {(eligibleParentsTree ?? []).length > 0 ? (
-                  <select
-                    defaultValue=""
-                    className="tag-dropdown"
-                    onChange={async (e) => {
-                      if (e.target.value) {
-                        await setParentContext(currentContext, e.target.value);
-                        setShowParentPicker(false);
-                      }
-                    }}
-                  >
-                    <option value="" disabled>Select parent group...</option>
-                    {(eligibleParentsTree ?? []).map(({ name, depth }) => (
-                      <option key={name} value={name}>{groupOptionLabel(name, depth)}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <p className="no-tags-hint">No other groups available</p>
-                )}
-                <button
-                  type="button"
-                  className="btn-secondary btn"
-                  onClick={() => setShowParentPicker(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-        </>
-      )}
-
       <main className="detail-content">
         {/* People section */}
         {hasPeople && (
           <>
-            {selectionMode && (
-              <div className="select-all-row">
-                <button
-                  className="select-all-btn"
-                  onClick={() => {
-                    const allSelected = sortedPrimary.every(p => selectedIds.has(p.id!));
-                    setSelectedIds(allSelected ? new Set() : new Set(sortedPrimary.map(p => p.id!)));
-                  }}
-                >
-                  {sortedPrimary.every(p => selectedIds.has(p.id!)) ? 'Deselect all' : 'Select all'}
-                </button>
-                <span className="selected-count">{selectedIds.size} of {sortedPrimary.length} selected</span>
-              </div>
-            )}
-
             {sortedPrimary.length > 0 && (
               <section className="section-primary">
                 <CompactPersonList
@@ -415,66 +319,8 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
           </>
         )}
 
-        {/* Move bar — shown in selection mode, inline after list */}
-        {selectionMode && (
-          <div className="move-bar">
-            <div className="move-bar-controls">
-              {showNewGroupInput ? (
-                <div className="move-bar-new-group">
-                  <button
-                    className="move-bar-back-btn"
-                    onClick={() => { setShowNewGroupInput(false); setNewGroupName(''); setNewGroupError(''); }}
-                  >
-                    ←
-                  </button>
-                  <input
-                    className="move-bar-new-group-input"
-                    value={newGroupName}
-                    onChange={e => { setNewGroupName(e.target.value); setNewGroupError(''); }}
-                    placeholder="New group name..."
-                    autoFocus
-                    autoCapitalize="words"
-                  />
-                </div>
-              ) : (
-                <select
-                  className="move-bar-select"
-                  value={moveDestination}
-                  onChange={e => {
-                    if (e.target.value === '__new__') {
-                      setShowNewGroupInput(true);
-                      setMoveDestination('');
-                    } else {
-                      setMoveDestination(e.target.value);
-                    }
-                  }}
-                >
-                  <option value="" disabled>Move to...</option>
-                  <option value="__new__">+ New group...</option>
-                  {allGroupsTree.map(({ name, depth }) => (
-                    <option key={name} value={name}>{groupOptionLabel(name, depth)}</option>
-                  ))}
-                </select>
-              )}
-              {newGroupError && <span className="move-bar-error">{newGroupError}</span>}
-            </div>
-            <div className="move-bar-actions">
-              <button
-                className="btn btn-primary"
-                disabled={selectedIds.size === 0 || (!moveDestination && !newGroupName.trim()) || moveSaving}
-                onClick={handleMoveConfirm}
-              >
-                {moveSaving ? '...' : `Move ${selectedIds.size > 0 ? `(${selectedIds.size})` : ''}`}
-              </button>
-              <button className="btn btn-secondary" onClick={handleCancelSelection} disabled={moveSaving}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Sub-groups — shown below people with a spacer */}
-        {(subContexts ?? []).length > 0 && !selectionMode && (
+        {(subContexts ?? []).length > 0 && (
           <>
             {hasPeople && <div className="section-divider" />}
             <ContextList
@@ -485,8 +331,9 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
         )}
 
         {/* Sort toggle — right justified, above add buttons */}
-        {hasPeople && !selectionMode && (
+        {hasPeople && (
           <div className="sort-toggle-row">
+            <span className="sort-toggle-label">Sort list by:</span>
             <button
               className={`sort-toggle-btn${sortMode === 'alpha' ? ' active' : ''}`}
               onClick={() => setSortMode('alpha')}
@@ -502,104 +349,169 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
           </div>
         )}
 
-        {/* Add group / Add person — same row when neither form is open */}
-        {!selectionMode && (
-          <div className="inline-add-row">
-            {showNewSubCtx ? (
-              <form onSubmit={handleAddSubContext} className="inline-new-context-form">
-                <input
-                  autoFocus
-                  className="inline-new-context-input"
-                  value={newSubCtxName}
-                  onChange={(e) => { setNewSubCtxName(e.target.value); setNewSubCtxError(''); }}
-                  placeholder="Group name..."
-                  autoCapitalize="words"
-                />
-                <button type="submit" className="btn btn-primary inline-form-btn" disabled={!newSubCtxName.trim() || newSubCtxSaving}>
-                  {newSubCtxSaving ? '...' : 'Save'}
-                </button>
-                <button type="button" className="btn btn-secondary inline-form-btn" onClick={() => { setShowNewSubCtx(false); setNewSubCtxName(''); setNewSubCtxError(''); }}>
-                  Cancel
-                </button>
-                {newSubCtxError && <p className="inline-new-context-error">{newSubCtxError}</p>}
-              </form>
-            ) : showNewPerson ? (
-              <form onSubmit={handleAddPerson} className="inline-new-context-form">
-                <input
-                  ref={newPersonNameRef}
-                  autoFocus
-                  className="inline-new-context-input"
-                  value={newPersonName}
-                  onChange={(e) => setNewPersonName(e.target.value)}
-                  placeholder="Name..."
-                  autoCapitalize="words"
-                />
-                <input
-                  className="inline-new-context-input"
-                  value={newPersonNotes}
-                  onChange={(e) => setNewPersonNotes(e.target.value)}
-                  placeholder="Notes (optional)..."
-                  autoCapitalize="sentences"
-                />
-                <button
-                  type="submit"
-                  className="btn btn-primary inline-form-btn"
-                  disabled={!newPersonName.trim() || newPersonSaving}
-                >
-                  {newPersonSaving ? '...' : 'Save'}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary inline-form-btn"
-                  onClick={() => { setShowNewPerson(false); setNewPersonName(''); setNewPersonNotes(''); }}
-                >
-                  Done
-                </button>
-              </form>
-            ) : showMoveGroupPicker ? (
-              <div className="set-parent-picker">
-                {(eligibleParentsTree ?? []).length > 0 ? (
+        {/* Add / move controls */}
+        <div className="inline-add-row">
+          {showNewSubCtx ? (
+            <form onSubmit={handleAddSubContext} className="inline-new-context-form">
+              <input
+                autoFocus
+                className="inline-new-context-input"
+                value={newSubCtxName}
+                onChange={(e) => { setNewSubCtxName(e.target.value); setNewSubCtxError(''); }}
+                placeholder="Group name..."
+                autoCapitalize="words"
+              />
+              <button type="submit" className="btn btn-primary inline-form-btn" disabled={!newSubCtxName.trim() || newSubCtxSaving}>
+                {newSubCtxSaving ? '...' : 'Save'}
+              </button>
+              <button type="button" className="btn btn-secondary inline-form-btn" onClick={() => { setShowNewSubCtx(false); setNewSubCtxName(''); setNewSubCtxError(''); }}>
+                Cancel
+              </button>
+              {newSubCtxError && <p className="inline-new-context-error">{newSubCtxError}</p>}
+            </form>
+          ) : showNewPerson ? (
+            <form onSubmit={handleAddPerson} className="inline-new-context-form">
+              <input
+                ref={newPersonNameRef}
+                autoFocus
+                className="inline-new-context-input"
+                value={newPersonName}
+                onChange={(e) => setNewPersonName(e.target.value)}
+                placeholder="Name..."
+                autoCapitalize="words"
+              />
+              <input
+                className="inline-new-context-input"
+                value={newPersonNotes}
+                onChange={(e) => setNewPersonNotes(e.target.value)}
+                placeholder="Notes (optional)..."
+                autoCapitalize="sentences"
+              />
+              <button
+                type="submit"
+                className="btn btn-primary inline-form-btn"
+                disabled={!newPersonName.trim() || newPersonSaving}
+              >
+                {newPersonSaving ? '...' : 'Save'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary inline-form-btn"
+                onClick={() => { setShowNewPerson(false); setNewPersonName(''); setNewPersonNotes(''); }}
+              >
+                Done
+              </button>
+            </form>
+          ) : selectionMode ? (
+            <div className="move-bar">
+              <div className="move-bar-controls">
+                {showNewGroupInput ? (
+                  <div className="move-bar-new-group">
+                    <button
+                      className="move-bar-back-btn"
+                      onClick={() => { setShowNewGroupInput(false); setNewGroupName(''); setNewGroupError(''); }}
+                    >
+                      ←
+                    </button>
+                    <input
+                      className="move-bar-new-group-input"
+                      value={newGroupName}
+                      onChange={e => { setNewGroupName(e.target.value); setNewGroupError(''); }}
+                      placeholder="New group name..."
+                      autoFocus
+                      autoCapitalize="words"
+                    />
+                  </div>
+                ) : (
                   <select
-                    defaultValue=""
-                    className="tag-dropdown"
-                    onChange={async (e) => {
-                      if (e.target.value) {
-                        await setParentContext(currentContext, e.target.value);
-                        setShowMoveGroupPicker(false);
+                    className="move-bar-select"
+                    value={moveDestination}
+                    onChange={e => {
+                      if (e.target.value === '__new__') {
+                        setShowNewGroupInput(true);
+                        setMoveDestination('');
+                      } else {
+                        setMoveDestination(e.target.value);
                       }
                     }}
                   >
-                    <option value="" disabled>Select parent group...</option>
-                    {(eligibleParentsTree ?? []).map(({ name, depth }) => (
+                    <option value="" disabled>Move to...</option>
+                    <option value="__new__">+ New group...</option>
+                    {allGroupsTree.map(({ name, depth }) => (
                       <option key={name} value={name}>{groupOptionLabel(name, depth)}</option>
                     ))}
                   </select>
-                ) : (
-                  <p className="no-tags-hint">No other groups available</p>
                 )}
+                {newGroupError && <span className="move-bar-error">{newGroupError}</span>}
+              </div>
+              <div className="move-bar-actions">
                 <button
-                  type="button"
-                  className="btn btn-secondary inline-form-btn"
-                  onClick={() => setShowMoveGroupPicker(false)}
+                  className="btn btn-primary"
+                  disabled={selectedIds.size === 0 || (!moveDestination && !newGroupName.trim()) || moveSaving}
+                  onClick={handleMoveConfirm}
                 >
+                  {moveSaving ? '...' : `Move${selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}`}
+                </button>
+                <button className="btn btn-secondary" onClick={handleCancelSelection} disabled={moveSaving}>
                   Cancel
                 </button>
               </div>
-            ) : (
-              <div className="inline-add-buttons">
-                <button className="inline-new-context-btn" onClick={() => setShowNewPerson(true)}>
-                  + add person
+            </div>
+          ) : showMoveGroupPicker ? (
+            <div className="set-parent-picker">
+              {(eligibleParentsTree ?? []).length > 0 ? (
+                <select
+                  value={moveGroupDestination}
+                  className="tag-dropdown"
+                  onChange={(e) => setMoveGroupDestination(e.target.value)}
+                >
+                  <option value="" disabled>Select parent group...</option>
+                  {(eligibleParentsTree ?? []).map(({ name, depth }) => (
+                    <option key={name} value={name}>{groupOptionLabel(name, depth)}</option>
+                  ))}
+                </select>
+              ) : (
+                <p className="no-tags-hint">No other groups available</p>
+              )}
+              <button
+                type="button"
+                className="btn btn-primary inline-form-btn"
+                disabled={!moveGroupDestination}
+                onClick={async () => {
+                  await setParentContext(currentContext, moveGroupDestination);
+                  setShowMoveGroupPicker(false);
+                  setMoveGroupDestination('');
+                }}
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary inline-form-btn"
+                onClick={() => { setShowMoveGroupPicker(false); setMoveGroupDestination(''); }}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <div className="inline-add-buttons">
+              <button className="inline-new-context-btn" onClick={() => setShowNewPerson(true)}>
+                + add person
+              </button>
+              <button className="inline-new-context-btn" onClick={() => setShowNewSubCtx(true)}>
+                + add group
+              </button>
+              {hasPeople && (
+                <button className="inline-new-context-btn" onClick={() => setSelectionMode(true)}>
+                  + move people
                 </button>
-                <button className="inline-new-context-btn" onClick={() => setShowNewSubCtx(true)}>
-                  + add group
-                </button>
-                <button className="inline-new-context-btn" onClick={() => setShowMoveGroupPicker(true)}>
-                  + move group
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+              <button className="inline-new-context-btn" onClick={() => setShowMoveGroupPicker(true)}>
+                + move group
+              </button>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );
