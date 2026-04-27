@@ -272,19 +272,17 @@ export function ContextDetailView({ context, onNavigate }: ContextDetailViewProp
 
   return (
     <div className={`context-detail-view${hasPeople ? ' has-people' : ''}`}>
-      {ancestors.length > 0 && (
-        <nav className="breadcrumb-row">
-          <button className="breadcrumb-item" onClick={() => onNavigate({ type: 'main' })}>Home</button>
-          {ancestors.map((ancestor) => (
-            <span key={ancestor} className="breadcrumb-fragment">
-              <span className="breadcrumb-sep">›</span>
-              <button className="breadcrumb-item" onClick={() => onNavigate({ type: 'context-detail', context: ancestor })}>
-                {ancestor}
-              </button>
-            </span>
-          ))}
-        </nav>
-      )}
+      <nav className="breadcrumb-row">
+        <button className="breadcrumb-item" onClick={() => onNavigate({ type: 'main' })}>Home</button>
+        {ancestors.map((ancestor) => (
+          <span key={ancestor} className="breadcrumb-fragment">
+            <span className="breadcrumb-sep">›</span>
+            <button className="breadcrumb-item" onClick={() => onNavigate({ type: 'context-detail', context: ancestor })}>
+              {ancestor}
+            </button>
+          </span>
+        ))}
+      </nav>
       <header className="detail-header">
         <button className="home-btn" onClick={() => onNavigate({ type: 'main' })} aria-label="Home">
           <img src="/icons/nh-logo.svg" alt="" className="header-logo" />
